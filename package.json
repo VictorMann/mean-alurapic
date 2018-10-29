@@ -1,0 +1,15 @@
+{
+  "name": "alurapic",
+  "version": "1.0.0",
+  "description": "<h1>Projeto Alura</h1>\r <h3>title: MEAN Stack: criando aplicações completas com jascript</h3>\r <section>\r     <p>\r         Este projeto destina-se como aprimoramento profissional, visando capacitação e qualificação para o mercado de trabalho.\r     </p>\r </section>\r <section>\r     <em>Descrição</em>\r     <p>\r         Desenvolvendo uma app com tecnologia MEAN de gerenciamento de postagem de fotos \r     </p>\r </section>",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "victormann",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.13.3"
+  }
+}
