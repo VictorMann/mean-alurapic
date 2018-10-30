@@ -1,2 +1,12 @@
 MEAN Stack e o quarteto fantástico
 MEAN Stack é uma solução completa para desenvolvimento de aplicações Web na plataforma Node.js. Esta palavra, que soa tão bem, na verdade é um acrônimo composto de quatro tecnologias distintas, são elas: (M)ongoDB, um banco de dados baseado em documentos que armazena no banco uma estrutura muito parecida com o JSON, aquela estrutura de dados que estamos acostumados a lidar no mundo JavaScript. (E)xpress, um framework web muito formoso no universo Node.js. (A)ngular, nosso já conhecido framework MVC que roda no navegador, e por fim o (N)ode.js, uma plataforma de desenvolvimento que utiliza em seu coração uma das máquinas virtuais mais sofisticadas do planeta, o V8 e que tem como linguagem o Javascript.
+============
+consign({cwd: 'app'})
+    .include('api')
+    .then('routes')
+    .into(app);
+
+module.exports = app;
+Lembre-se que a primeira pasta que incluímos no consign usa a função include e todas as demais usam a função then. Se quisermos passar uma instância configurada do Express para todas os módulos carregados, usamos a função .into passando a instância configurada como parâmetro.
+
+A grande sacada do consign é que ele disponibilizará cada módulo carregado em propriedades na instância do Express passado como parâmetro. Se um módulo carregado receber pelo menos um parâmetro, este será a instância do Express. Por exemplo, veja o módulo alurapic/app/routes/foto.js:
