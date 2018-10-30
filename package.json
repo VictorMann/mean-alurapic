@@ -10,6 +10,7 @@
   "author": "victormann",
   "license": "ISC",
   "dependencies": {
+    "consign": "^0.1.2",
     "express": "^4.13.3"
   }
 }
