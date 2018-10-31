@@ -31,4 +31,11 @@ api.adiciona = function (req, res) {
     res.json(foto);
 };
 
+api.atualiza = function (req, res) {
+    let indice = fotos.findIndex(foto => foto._id == req.params.id);
+    let foto = req.body;
+    fotos[indice] = foto;
+    res.sendStatus(200);
+};
+
 module.exports = api;
