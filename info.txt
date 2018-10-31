@@ -10,3 +10,19 @@ module.exports = app;
 Lembre-se que a primeira pasta que incluímos no consign usa a função include e todas as demais usam a função then. Se quisermos passar uma instância configurada do Express para todas os módulos carregados, usamos a função .into passando a instância configurada como parâmetro.
 
 A grande sacada do consign é que ele disponibilizará cada módulo carregado em propriedades na instância do Express passado como parâmetro. Se um módulo carregado receber pelo menos um parâmetro, este será a instância do Express. Por exemplo, veja o módulo alurapic/app/routes/foto.js:
+============
+Menor impedância
+Conseguimos fazer a comunicação da nossa aplicação Angular com nosso server. Durante esta comunicação, tanto um quanto outro enviam e recebem dados. Um ponto curioso a se destacar é que trafegamos a estrutura de dados JSON. Essa estrutura tão difundida no mundo Javascript é de fácil manipulação, inclusive tanto nosso servidor quando nosso cliente Angular sabem transformar esse formato textual em objetos que podem ser manipulados.
+
+Sabemos que precisamos ainda implementar a persistência dos nossos dados, porque a cada reinicio do servidor perdemos nossas modificações. A pergunta que lhe faço é a seguinte: qual banco utilizaremos? A escolha de um banco de dados não é uma questão de gosto, mas envolve decisões arquiteturais que nem sempre são triviais. A boa notícia é que não precisaremos meditar muito para escolhermos o nosso banco, pois no acrônimo MEAN o M significa MongoDB.
+
+O MongoDB é um banco noSQL orientado a documento que armazena seus dados em uma estrutura de dados extremamente parecida com JSON e dependendo da maneira que interagimos com esse banco através do nosso código no backend podemos tratá-lo como tal. Dentro desse contexto, gravaremos nossos dados no formato "JSON", leremos através da nossa aplicação Node.js esse dado que será enviado diretamente para nossa aplicação Angular que entende com facilidade essa estrutura. Repare que durante esse trâmite não gastaremos tempo lidando com conversões, inclusive quando formos atualizar os dados, enviaremos o JSON atualizado que será recebido pelo backend e que será gravado diretamente no banco! Perfeito. No final das contas, nossa aplicação terá menor impedância, que é a discrepância das estrutura de dados do banco e essa estrutura de dados em memória.
+
+process.on('SIGINT', function() {
+    mongoose.connection.close(function() {
+        console.log('Aplicação terminada, conexão fechada')
+        process.exit(0);
+    });
+})
+
+A variável process é uma variável globalmente acessível que nos dá acesso a várias informações do sistema operacional. Com ela, escutamos o evento de término da aplicação pelo sinal SIGINT. Quando a aplicação é terminada, chamamos mongoose.connection.close para fecharmos a conexão, que por conseguinte dispara o evento disconnected. Usamos process.exit(0) para indicar que foi um término de aplicação esperado, não decorrente de um erro.
