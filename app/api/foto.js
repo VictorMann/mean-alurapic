@@ -49,6 +49,14 @@ api.removePorId = function (req, res) {
 
 api.adiciona = function (req, res) {
 
+    model.create(req.body).then(
+        // devolve a foto com _id
+        foto => res.json(foto),
+        erro => {
+            console.log(erro);
+            res.status(500).json(erro);
+        }
+    );
 };
 
 api.atualiza = function (req, res) {
