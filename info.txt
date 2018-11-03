@@ -26,3 +26,105 @@ process.on('SIGINT', function() {
 })
 
 A variável process é uma variável globalmente acessível que nos dá acesso a várias informações do sistema operacional. Com ela, escutamos o evento de término da aplicação pelo sinal SIGINT. Quando a aplicação é terminada, chamamos mongoose.connection.close para fecharmos a conexão, que por conseguinte dispara o evento disconnected. Usamos process.exit(0) para indicar que foi um término de aplicação esperado, não decorrente de um erro.
+=============
+Por padrão o MongoDB nos conecta ao banco test. Vou pedir para trocar para o alurapic:
+
+use alurapic
+switched to db alurapic
+>
+Podemos interagir com o alurapic através da variável db, um atalho para nosso banco. Tanto isso é verdade que se imprimirmos a variável no console temos:
+
+> db
+alurapic
+>
+Agora, vou criar um objeto Javascript que representa uma foto:
+
+> var foto = { titulo: 'Leão', url : ''};
+> foto
+{ "titulo" : "Leão", "url" : "" }
+>
+Podemos usar toda aquela sintaxe conhecida do Javascript no mongo shell!
+
+Documento arquivado
+A questão agora é: onde eu gravo esse documento? No MongoDB, uma estrutra que lembra o conceito de tabela é a coleção. Em nosso exemplo, quero armazenar o documento foto na coleção fotos:
+
+> db.fotos.insert(foto);
+WriteResult({ "nInserted" : 1 })
+Estamos acessando a propriedade .fotos do nosso banco alurapic. Por mais estranho que isso pareça, se essa propriedade não existir, o MongoDB a criará ao mesmo tempo em que cria uma collection de mesmo nome. Em seguida, a partir da coleção fotos, realizamos uma inclusão através da função insert. Eu sei, muita coisa acontecendo numa única linha! No final, o console indica que um documento foi inserido.
+
+Não tem esquema?
+Sim é possível. Isso acontece porque o MongoDB não trabalha com esquemas. Em um banco de dados relacional, criamos esquemas para indicar que todo registro deve ter X colunas e que essas colunas são determinado tipo. Como você viu, eu posso gravar um documento com uma estrutura diferente na mesma coleção. Posso até gravar um documento no qual o título é um número.
+
+Dando um jeitinho
+Então esquema não é importante? Claro que são, mas no MongoDB quem deve garantir a consistência dos seus dados é sua aplicação, não o banco. Dessa forma, a criação de esquemas é responsabilidade da aplicação. É na tarefa de criação de esquemas que o Mongoose nos ajudará bastante, além de nos fornecer funções especializadas na manipulação de documentos.
+
+O esquema de documentos
+Então, em qual diretório criaremos os esquemas da aplicação? Vamos criá-los dentro da nova pasta alurapic/app/models. Veremos que um esquema do Mongoose no final gera um modelo que será usado pela aplicação. Criando o arquivo alurapic/app/models/foto.js:
+
+// alurapic/app/models/foto.js
+
+var mongoose = require('mongoose');
+
+// cria o esquema
+var schema = mongoose.Schema();
+É através da função mongoose.Schema que criamos um esquema. Pense no schema como aquele que determinará quais atributos nosso modelo Foto deve ter, inclusive seus tipos e regras de validação. Mas olhando nosso código, onde está a definição dessas regras? Em nenhum lugar! Precisamos passar essas configurações para a função mongoose.Schema:
+
+var schema = mongoose.Schema({
+
+    titulo: {
+        type: String,
+        required: true
+    },
+    url: {
+        type: String,
+        required: true
+    },
+    grupo: {
+        type: Number,
+        required: true
+    }
+});
+Passamos um objeto como parâmetro e suas propriedades representam os atributos que teremos em nosso documento. Em nosso exemplo, teremos titulo, url e grupo. Porém, para cada um desses atributos, podemos passar um outro objeto como parâmetro. É através desse objeto que dizemos o tipo do campo e se ele é obrigatório ou não. Por exemplo, o atributo grupo é do tipo Number, se passarmos uma String como parâmetro o mongoose não o aceitará. Inclusive, se tentarmos adicionar propriedades que não existem no esquema, elas serão ignoradas.
+
+Precisamos de um modelo
+Ótimo, criamos nosso primeiro schema, mas quando interagimos com o MongoDB através do Mongoose, não fazemos isso através dele, mas de um objeto modelo que segue a regra desse schema. É por isso que depois de criarmos um schema, precisamos solicitar ao mongoose que compile nosso esquema e gere um modelo para que possamos utilizar em nossa aplicação:
+
+var schema = mongoose.Schema({
+
+    titulo: {
+        type: String,
+        required: true
+    },
+    url: {
+        type: String,
+        required: true
+    },
+    grupo: {
+        type: Number,
+        required: true
+    },
+    descricao: {
+        type: String
+    }
+});
+
+ // compilando um modelo com base no esquema
+mongoose.model('Foto', schema);
+Pronto, a questão agora é que o módulo alurapic/app/models/foto.js precisa ser carregado assim que nossa aplicação subir. Isso não é problema para nós, porque aprendemos a carregar módulos através do consign. Vamos alterar alurapic/config/express.js:
+
+consign({cwd: 'app'})
+    .include('models')
+    .then('api')
+    .then('routes')
+    .into(app);
+
+Não é por acaso que carregamos primeiro a pasta models. Como nossa API dependerá do modelo criado pelo mongoose, esses modelos precisam existir primeiro antes de serem criados. Até agora tudo bem?
+
+Você deve estar pensando que acessaremos nosso modelo através de app.models.foto, mas não o acessaremos assim. Podemos em qualquer lugar da nossa aplicação requerer um modelo bastando importar o módulo do mongoose e em seguida chamar a função mongoose.model('nomeDoModel'). Veja que dessa vez, não passamos um esquema como parâmetro, justamente para indicar que queremos acessar um modelo já criado e não criar outro. 
+
+No exemplo acima, temos um objeto Javascript que pode ser facilmente convertido para um JSON e enviado via web (lembra da diferença entre JSON e Object JavaScript?). Inclusive temos duas propriedades, uma do tipo String e outra do tipo Number. O BSON possui novos tipos, por exemplo, um ObjectID.
+
+Quando compilamos um modelo através de mongoose.model, o primeiro parâmetro é o nome do modelo e o segundo o esquema (schema). Ele é importante, porque é através deste nome que solicitamos modelos ao Mongoose em qualquer lugar da nossa aplicação. O Mongoose, por padrão, criará uma colection usando o nome do modelo em plural, tudo em caixa baixas. Sendo assim, teremos a collections fotos criada. E se não quisermos esse padrão? Podemos fazer assim:
+
+mongoose.model('Foto', schema,  'minhasFotos');
+O terceiro parâmetro indica qual será o nome da collection criada, que no exemplo acima será minhasFotos no lugar de fotos.
