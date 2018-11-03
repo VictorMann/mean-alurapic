@@ -1,41 +1,44 @@
-// lista de fotos
-var fotos = [
-    {_id: 1, titulo: 'Leão', url:'http://www.fundosanimais.com/Minis/leoes.jpg' },
-    {_id: 2, titulo: 'Leão 2', url:'http://www.fundosanimais.com/Minis/leoes.jpg' }
-];
-
+var mongoose = require('mongoose');
 // controller
 var api = {};
 
 api.lista = function (req, res) {
     
-    res.json(fotos);
+    var model = mongoose.model('Foto');
+    
+    model.find({}).then(
+        fotos => res.json(fotos),
+        erro => {
+            console.log(erro);
+            res.status(500).json(erro);
+        }
+    );
+    /* outra opção
+    model.find((erro, fotos) => {
+        if (erro) res.status(500).json(erro);
+        res.json(fotos);
+    });
+    */
+
 };
 
 api.buscaPorId = function (req, res) {
 
-    var foto = fotos.find(fotoBuscada => fotoBuscada._id == req.params.id);
-    res.json(foto);
+    
 };
 
 api.removePorId = function (req, res) {
-    fotos = fotos.filter(foto => foto._id != req.params.id);
+    
     // 204 indica que o servidor executou a operação, mas nenhum informação foi retornada
-    res.sendStatus(204); // idem res.status(204).send();
+    
 };
 
 api.adiciona = function (req, res) {
-    let foto = req.body;
-    foto._id = fotos.length + 1;
-    fotos.push(foto);
-    res.json(foto);
+
 };
 
 api.atualiza = function (req, res) {
-    let indice = fotos.findIndex(foto => foto._id == req.params.id);
-    let foto = req.body;
-    fotos[indice] = foto;
-    res.sendStatus(200);
+
 };
 
 module.exports = api;
