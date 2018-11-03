@@ -37,8 +37,14 @@ api.buscaPorId = function (req, res) {
 
 api.removePorId = function (req, res) {
     
-    // 204 indica que o servidor executou a operação, mas nenhum informação foi retornada
-    
+    model.remove({_id: req.params.id}).then(
+        // 204 indica que o servidor executou a operação, mas nenhum informação foi retornada
+        () => res.sendStatus(204),
+        erro => {
+            console.log(erro);
+            res.status(500).json(erro);
+        }
+    );
 };
 
 api.adiciona = function (req, res) {
