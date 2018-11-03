@@ -61,6 +61,13 @@ api.adiciona = function (req, res) {
 
 api.atualiza = function (req, res) {
 
+    model.findByIdAndUpdate(req.params.id, req.body).then(
+        foto => res.json(foto),
+        erro => {
+            console.log(erro);
+            res.status(500).json(erro);
+        }
+    );
 };
 
 module.exports = api;
