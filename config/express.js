@@ -10,7 +10,8 @@ app.use(bodyParser.json());
 // realiza o carregamento automático dos modulos em app/routes
 // passando como param app
 consign()
-.include('app/api')
+.include('app/models')
+.then('app/api')
 .then('app/routes')
 .into(app);
 
