@@ -1,11 +1,10 @@
 var mongoose = require('mongoose');
 // controller
 var api = {};
+var model = mongoose.model('Foto');
 
 api.lista = function (req, res) {
-    
-    var model = mongoose.model('Foto');
-    
+
     model.find({}).then(
         fotos => res.json(fotos),
         erro => {
@@ -24,7 +23,16 @@ api.lista = function (req, res) {
 
 api.buscaPorId = function (req, res) {
 
-    
+    model.findById(req.params.id).then(
+        foto => {
+            if (!foto) throw Error('Foto nao encontrada');
+            res.json(foto);
+        },
+        erro => {
+            console.log(erro);
+            res.status(404).json(erro);
+        }
+    );
 };
 
 api.removePorId = function (req, res) {
