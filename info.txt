@@ -128,3 +128,59 @@ Quando compilamos um modelo através de mongoose.model, o primeiro parâmetro é
 
 mongoose.model('Foto', schema,  'minhasFotos');
 O terceiro parâmetro indica qual será o nome da collection criada, que no exemplo acima será minhasFotos no lugar de fotos.
+=============
+JWT (JSON Web Token)
+Hoje qualquer um que saiba a URL do nossa aplicação é capaz de incluir fotos. A ideia agora é que apenas usuários autenticados possam realizar essa tarefa. Para isso, usaremos um sistema de autenticação baseado em tokens usando o padrão JWT. O JSON Web Token (JWT) é um padrão aberto que define um meio de transmitir informações entre interessados utilizando JSON object. A informação é confiável porque é assinada digitalmente.
+
+Rotas de autenticação e segurança
+Vamos criar o arquivo alurapic/app/routes/auth.js. Todas as rotas envolvidas na autenticação serão adicionadas neste arquivo:
+
+// alurapic/app/routes/auth.js
+
+module.exports = function(app) {
+
+    var api = app.api.auth;
+    app.post('/autenticar', api.autentica);
+    app.use('/*', api.verificaToken);
+};
+Teremos duas rotas. A primeira /autenticar não é protegida e nem poderia, porque é aquela que será usada pela aplicação Angular não autenticada para se autenticar. Autenticação bem sucedida devolve para aplicação Angular um token que deve ser armazenado e posteriormente enviado à cada requisição. Entenda-o como uma credencial. Todas os recursos que acessarmos em nosso servidor, exceto a rota /autenticar, precisará dessa credencial.
+
+A rota /*é especial. Primeiro, porque usamos app.use. Isso permite respondermos a qualquer verbo HTTP. Esta rota é aquela disparada independente da URL acessada pelo usuário e que verificará se há um token (credencial) na requisição, inclusive se ele é válido. Caso alguém tente acessar um recurso sem enviar um token (aquele obtido na autenticação) ou um token que não é mais válido (que expirou) o servidor devolverá o código de status 401. Como a rota /autenticar foi definida antes de /*, a primeira não será filtrada pela segunda. Perfeito, pois não queremos bloquear acesso à rota /autenticar.
+
+Vejamos o código:
+
+ var token = jwt.sign( {login: usuario.login}, app.get('secret'), {
+     expiresIn: 86400 // valor em segundo, aqui temos um total de 24 horas
+ });
+Neste techo, chamamos a função jwt.sign passando como primeiro parâmetro um payload. Um payload é qualquer valor escolhido por nós, no caso da aplicação, estou passando o login do usuário. O segundo parâmetro estamos solicitando à variável de ambiente do Express secret a senha armazenada. É essa senha que será usada para assinar o token (não preciso dizer o quanto ela é importante, não?). O terceiro e último parâmetro é um JSON que permite passar algumas configurações para o módulo. No meu exemplo, uso a propriedade expiresin para indicar quando o token espirará. Ele aceita um valor em segundo, por isso passei 86400 para o token expirar em 24h.
+
+A forma tradicional de autenticar usuários é a baseada no servidor. Para que nossa aplicação lembre quem somos, ela guarda a informação do usuário no servidor. Isso pode ser feito de diferentes formas na sessão do usuário, geralmente é na memória ou no disco.
+
+O problema dessa abordagem tradicional é que, toda vez que um usuário se autentica, o servidor terá que reservar um espaço na memória ou criar o registro do usuário em algum lugar. Imagine zilhões de usuários? Em algum momento isso trará um peso para o servidor.
+
+Outro ponto, que toca mais aspectos arquiteturais (você não precisa ser um arquiteto para entender o que vou dizer) é o de escalabilidade. Escalabilidade é uma característica desejável em todo o sistema, em uma rede ou em um processo, que indica sua capacidade de manipular uma porção crescente de trabalho de forma uniforme, ou estar preparado para crescer. Se nosso provedor na nuvem começar a replicar nossos servidores para dar conta de uma carga muito brutal, ter informações vitais na memória da sessão limitará a capacidade de escalar.
+
+Autenticação baseada em token é outra história. Ela não guarda estado por padrão, ou seja, não guardamos nenhuma informação sobre o usuário no servidor ou na sessão. Essa forma resolve muitos dos problemas que vimos na autenticação tradicional, já que nada é criado no servidor. Como não há sessão do usuário no servidor que guarde informação de quem você é, os servidores podem ser replicados (escalados) sem precisarmos saber onde o usuário está logado.
+
+O ônus dessa solução é que todas as requisições feitas devem enviar o token, a credencial do usuário e a cada requisição o servidor precisará verificar se o token é válido e descriptografar o token toda vez para saber quem é o usuário que está acessando determinado recurso. Além disso, a aplicação que interage com uma API do nosso servidor, por exemplo, terá que armazenar o token recebido (após se autenticar) em algum lugar. Esse ponto é importante, caso contrário o acesso a uma API será barrado, porque não há token enviado.
+
+Mas que tal falar mais um pouquinho sobre o JWT (que durante os vídeos eu cismo em falar GWT)?
+
+Por causa do seu tamanho compacto, um JWT pode ser enviado por uma URL, POST ou dentro do cabeçalho HTTP (abordaremos esta forma, mais difundida). Por ser compacto, seu envio é extremamente rápido.
+
+Quando dizemos que o JWT é auto-contido, queremos dizer que toda informação do usuário é adicionada no token. Essa informação possui um nome técnico, é chamada de payload. Como Token possui toda informação requerida do usuário, isso evita que uma consulta no banco de dados seja executada mais de uma vez.
+
+A estrutura de um JWT consiste em três partes separadas por (.), são elas:
+
+1 - Header (cabeçalho) do token
+
+2 - Payload (as informações que você deseja coloca no token)
+
+3 - Assinatura (claro, para garantir que ninguém mexeu no token)
+
+Sendo assim, sua estrutura segue:
+
+xxxxx.yyyyy.zzzzz
+Quando assinado fica:
+
+eyJpc3MiOiJzY290Y2guaW8iLCJleHAiOjEzMDA4MTkzODAsIm5hbWUiOiJDaHJpcyBTZXZpbGxlamEiLCJhZG1pbiI6dHJ1ZX0
