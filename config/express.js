@@ -3,6 +3,9 @@ var app = express();
 var consign = require('consign');
 var bodyParser = require('body-parser');
 
+// variáveis de ambiente
+app.set('secret', 'homemavestruz');
+
 // middleware
 app.use(express.static('./public'));
 app.use(bodyParser.json());
