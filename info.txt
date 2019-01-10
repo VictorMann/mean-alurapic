@@ -170,6 +170,8 @@ Por causa do seu tamanho compacto, um JWT pode ser enviado por uma URL, POST ou 
 
 Quando dizemos que o JWT é auto-contido, queremos dizer que toda informação do usuário é adicionada no token. Essa informação possui um nome técnico, é chamada de payload. Como Token possui toda informação requerida do usuário, isso evita que uma consulta no banco de dados seja executada mais de uma vez.
 
+http://calebb.net/
+
 A estrutura de um JWT consiste em três partes separadas por (.), são elas:
 
 1 - Header (cabeçalho) do token
